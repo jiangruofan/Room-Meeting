@@ -1,33 +1,59 @@
 import React, { Component } from "react";
-import RoomJoinPage from "./RoomJoinPage";
-import Room from "./Room";
 import { Grid, Button, ButtonGroup, Typography } from "@material-ui/core";
 import {
-  BrowserRouter as Router,
-  Switch,
-  Route,
   Link,
-  Redirect,
 } from "react-router-dom";
+import axios from 'axios';
 
 export default class HomePage extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      roomCode: null,
-    };
-    this.clearRoomCode = this.clearRoomCode.bind(this);
     this.handleRoomButtonPressed = this.handleRoomButtonPressed.bind(this);
+    this.login = this.login.bind(this);
+    this.login();
   }
 
-  async componentDidMount() {
-    fetch("/api/user-in-room")
+  async login() {
+    if (!localStorage.getItem('username')) {
+      var axios = require('axios');
+      var username = 0;
+
+      const requestOptions = {
+        method: "GET",
+        headers: { "Content-Type": "application/json",
+        'PRIVATE-KEY': '668f526d-a331-410b-8660-b0aacf1419e7' },
+      };
+      await fetch("https://api.chatengine.io/users/", requestOptions)
       .then((response) => response.json())
-      .then((data) => {
-        this.setState({
-          roomCode: data.code,
-        });
+      .then((data) => username = data.length);
+
+      username = 'abcdef' + username
+
+      var data = {
+        "username": username,
+        "secret": "secret-123-jBj02",
+      };
+
+      var config = {
+        method: 'post',
+        url: 'https://api.chatengine.io/users/',
+        headers: {
+          'PRIVATE-KEY': '668f526d-a331-410b-8660-b0aacf1419e7'
+        },
+        data : data
+      };
+
+      await axios(config)
+      .then(function (response) {
+        console.log(JSON.stringify(response.data));
+      })
+      .catch(function (error) {
+        console.log(error);
       });
+      localStorage.setItem('username', username);
+
+
+    }
   }
 
   handleRoomButtonPressed() {
@@ -42,7 +68,8 @@ export default class HomePage extends Component {
       });
   }
 
-  renderHomePage() {
+
+  render() {
     return (
       <Grid container spacing={3}>
         <Grid item xs={12} align="center">
@@ -61,39 +88,6 @@ export default class HomePage extends Component {
           </ButtonGroup>
         </Grid>
       </Grid>
-    );
-  }
-
-  clearRoomCode() {
-    this.setState({
-      roomCode: null,
-    });
-  }
-
-  render() {
-    return (
-      <Router>
-        <Switch>
-          <Route
-            exact
-            path="/"
-            render={() => {
-              return this.state.roomCode ? (
-                <Redirect to={`/room/${this.state.roomCode}`} />
-              ) : (
-                this.renderHomePage()
-              );
-            }}
-          />
-          <Route path="/join" component={RoomJoinPage} />
-          <Route
-            path="/room/:roomCode"
-            render={(props) => {
-              return <Room {...props} leaveRoomCallback={this.clearRoomCode} />;
-            }}
-          />
-        </Switch>
-      </Router>
     );
   }
 }

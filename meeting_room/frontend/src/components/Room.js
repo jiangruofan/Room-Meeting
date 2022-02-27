@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 import { Grid, Button, Typography } from "@material-ui/core";
 import Topic from "./Topic";
+import CreateTopic from "./CreateTopic";
+import { Link } from "react-router-dom";
 
 export default class Room extends Component {
   constructor(props) {
@@ -32,6 +34,7 @@ export default class Room extends Component {
         this.setState({
           isHost: data.host,
           topics: data.topics,
+          showSettings: false,
         });
       });
       
@@ -42,7 +45,7 @@ export default class Room extends Component {
       method: "POST",
       headers: { "Content-Type": "application/json" },
     };
-    fetch("/api/leave-room", requestOptions).then((_response) => {
+    fetch("/api/leave-room", requestOptions).then(() => {
       this.props.leaveRoomCallback();
       this.props.history.push("/");
     });
@@ -58,22 +61,10 @@ export default class Room extends Component {
     return (
       <Grid container spacing={1}>
         <Grid item xs={12} align="center">
-          <CreateRoomPage
-            update={true}
-            votesToSkip={this.state.votesToSkip}
-            guestCanPause={this.state.guestCanPause}
-            roomCode={this.roomCode}
-            updateCallback={this.getRoomDetails}
+          <CreateTopic
+            code={this.roomCode} history={this.props.history}
+            updateCallback = {this.getRoomDetails}
           />
-        </Grid>
-        <Grid item xs={12} align="center">
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={() => this.updateShowSettings(false)}
-          >
-            Close
-          </Button>
         </Grid>
       </Grid>
     );
@@ -97,7 +88,17 @@ export default class Room extends Component {
     if (this.state.showSettings) {
       return this.renderSettings();
     } 
+
+    const { topics } = this.state; 
+    const inputPile = [];  //定义一个数组
+    for (let i = 0; i < topics.length; i+=1) {  // for循环数组
+      inputPile.push(  //将组件塞入定义的数组中
+        <Topic isHost={this.state.isHost} id={this.state.topics[i]} updateCallback={this.getRoomDetails}  />
+      );
+    }
+
     return (
+      
       <Grid container spacing={1}>
         <Grid item xs={12} align="center">
           <Typography variant="h4" component="h4">
@@ -109,8 +110,18 @@ export default class Room extends Component {
             Host: {this.state.isHost.toString()}
           </Typography>
         </Grid>
+        <Grid item xs={12} align="center">
+          <Button
+            variant="contained"
+            to="/chat" component={Link}
+          >
+            Chat
+          </Button>
+        </Grid>
 
-        <Topic isHost={this.state.isHost} id={this.state.topics[1]}  />
+
+        {inputPile}
+        
 
         {this.state.isHost ? this.renderSettingsButton() : null}
         <Grid item xs={12} align="center">

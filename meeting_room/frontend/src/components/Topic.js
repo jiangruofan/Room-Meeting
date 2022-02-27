@@ -1,11 +1,11 @@
 import React, { Component } from "react";
-import { Grid, Button, Typography } from "@material-ui/core";
+import { Grid, Button, Typography, ButtonGroup } from "@material-ui/core";
+import CreateTopic from "./CreateTopic";
 
 export default class Topic extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      id: this.props.id,
       isHost: this.props.isHost,
       title: "",
       time_last: "",
@@ -16,7 +16,7 @@ export default class Topic extends Component {
     this.renderSettingsButton = this.renderSettingsButton.bind(this);
     this.renderSettings = this.renderSettings.bind(this);
     this.getTopicDetails = this.getTopicDetails.bind(this);
-    this.handleDeleteButtonPressed = this.handleDeleteButtonPressed(this);
+    this.handleDeleteButtonPressed = this.handleDeleteButtonPressed.bind(this);
     this.getTopicDetails();
   }
 
@@ -44,8 +44,8 @@ export default class Topic extends Component {
   }
 
   handleDeleteButtonPressed() {
-
-      
+    fetch("/api/delete-topic" + "?id=" + this.props.id, { method: 'DELETE' })
+        .then(() => {this.props.updateCallback()});
   }
 
   updateShowSettings(value) {
@@ -58,11 +58,12 @@ export default class Topic extends Component {
     return (
       <Grid container spacing={1}>
         <Grid item xs={12} align="center">
-          <CreateTopic //??
+          <CreateTopic 
             update={true}
-            votesToSkip={this.state.votesToSkip}
-            guestCanPause={this.state.guestCanPause}
-            roomCode={this.roomCode}
+            title = {this.state.title}
+            time_last = {this.state.time_last}
+            description = {this.state.description}
+            id = {this.props.id}
             updateCallback={this.getTopicDetails}
           />
         </Grid>
@@ -81,15 +82,16 @@ export default class Topic extends Component {
 
   renderSettingsButton() {
     return (
+      <Grid item xs={12} align="center">
         <ButtonGroup disableElevation variant="contained" color="primary">
-        <Button color="primary"  onClick={this.handleDeleteButtonPressed}>
-          Delete
-        </Button>
-        <Button color="secondary" onClick={() => this.updateShowSettings(true)}>
+        <Button color="primary" onClick={() => this.updateShowSettings(true)}>
           Edit
         </Button>
+        <Button color="secondary"  onClick={this.handleDeleteButtonPressed}>
+          Delete
+        </Button>
       </ButtonGroup>
-    
+    </Grid>
     );
   }
 
